@@ -2,20 +2,24 @@ import {
     Range
 } from 'vscode';
 import { AnchorMode } from './AnchorMode';
+import { Anchor } from './Anchor';
 
 export class Header {
     headerMark: string = "";
     orderedListString: string = "";
-    dirtyTitle:string = "";
+    dirtyTitle: string = "";
     range: Range;
 
-    orderArray:number[] = [];
+    orderArray: number[] = [];
 
     anchorMode: AnchorMode = AnchorMode.github;
+
+    anchor: Anchor;
 
     constructor(anchorMode: AnchorMode) {
         this.anchorMode = anchorMode;
         this.range = new Range(0, 0, 0, 0);
+        this.anchor = new Anchor("");
     }
 
     public get depth(): number {
@@ -26,18 +30,10 @@ export class Header {
         return this.headerMark != "";
     }
 
-    public hash(tocString: string): string {
+    public tocRowWithAnchor(tocString: string): string {
         let title = this.cleanUpTitle(tocString);
-        let hashMap: any = {};
-
-        if (hashMap[title] == null) {
-            hashMap[title] = 0;
-        }
-        else {
-            hashMap[title] += 1;
-        }
-
-        return this.getHash(title, this.anchorMode, hashMap[title]);
+        let anchor_markdown_header = require('anchor-markdown-header');
+        return anchor_markdown_header(title, this.anchorMode);
     }
 
     public get tocWithoutOrder(): string {
@@ -48,17 +44,12 @@ export class Header {
         return this.orderArray.join('.') + ". " + this.tocWithoutOrder;
     }
 
-    public get fullHeaderWithOrder():string {
+    public get fullHeaderWithOrder(): string {
         return this.headerMark + " " + this.tocWithOrder;
     }
 
-    public get fullHeaderWithoutOrder():string{
+    public get fullHeaderWithoutOrder(): string {
         return this.headerMark + " " + this.tocWithoutOrder;
-    }
-
-    private getHash(headername: string, mode: AnchorMode, repetition: number) {
-        let anchor = require('anchor-markdown-header');
-        return decodeURI(anchor(headername, mode, repetition));
     }
 
     private cleanUpTitle(dirtyTitle: string) {
